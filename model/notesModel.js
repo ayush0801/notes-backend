@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+require('../db')
 
 const noteSchema = new mongoose.Schema({
    title: {
