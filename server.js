@@ -118,7 +118,19 @@ app.put('/notes/:id', (req, res) => {
 
 // Delete a note by ID
 app.delete('/notes/:id', (req, res) => {
-    // Implement logic to delete a note by ID
+    const id = req.params.id;
+    notesModel.findOneAndDelete({_id: id})
+    .then((data) => {
+        if (!data) {
+            res.status(404).json({error: "No Data Found"})
+        }
+        else {
+            res.status(200).json({message:"Deleted the Note!"})
+        }
+    })
+        .catch((err) => {
+        res.status(500).json({error: err.message})
+        })
 });
 
 
