@@ -67,39 +67,41 @@ app.put('/notes/:id', (req, res) => {
     const id = req.params.id
     const thingsToUpdate = {}
     const {title, body} = req.body
-    // if(title && body){
-    //     if(title.length < 3){
-    //         return res.status(422).json({error: "Title should be atleast 3 characters"})
-    //     }
-    //     if(body.length < 10){
-    //         return res.status(422).json({error: "Body should be atleast 10 characters"})
-    //     }
-    //     thingsToUpdate.title = title
-    //     thingsToUpdate.body = body
-    // }
-    // else if(title){
-    //     if(title.length < 3){
-    //         return res.status(422).json({error: "Title should be atleast 3 characters"})
-    //     }
-    //     thingsToUpdate.title = title
-    // }
-    // else if(body){
-    //     if(body.length < 10){
-    //         return res.status(422).json({error: "Body should be atleast 10 characters"})
-    //     }
-    //     thingsToUpdate.body = body
-    // }
-    // else{
-    //     return res.status(422).json({error: "Please fill any one field"})
-    // }
-    if(title.length < 3){
-        return res.status(422).json({error: "Title should be atleast 3 characters"})
+    if(title && body){
+        if(title.length < 3){
+            return res.status(422).json({error: "Title should be atleast 3 characters"})
+        }
+        if(body.length < 10){
+            return res.status(422).json({error: "Body should be atleast 10 characters"})
+        }
+        thingsToUpdate.title = title
+        thingsToUpdate.body = body
     }
-    if(body.length < 10){
-        return res.status(422).json({error: "Body should be atleast 10 characters"})
+    else if(title){
+        if(title.length < 3){
+            return res.status(422).json({error: "Title should be atleast 3 characters"})
+        }
+        thingsToUpdate.title = title
     }
-    thingsToUpdate.title = title
-    thingsToUpdate.body = body
+    else if(body){
+        if(body.length < 10){
+            return res.status(422).json({error: "Body should be atleast 10 characters"})
+        }
+        thingsToUpdate.body = body
+    }
+    else{
+        return res.status(422).json({error: "Please fill any one field"})
+    }
+    //-----------------If no Title or Body will be passed, then this code will not work---------------------------
+
+    // if(title.length < 3){
+    //     return res.status(422).json({error: "Title should be atleast 3 characters"})
+    // }
+    // if(body.length < 10){
+    //     return res.status(422).json({error: "Body should be atleast 10 characters"})
+    // }
+    // thingsToUpdate.title = title
+    // thingsToUpdate.body = body
     notesModel.findOneAndUpdate({_id:id}, {$set: thingsToUpdate})
     .then((data) => {
         if(!data){
