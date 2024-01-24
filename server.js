@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { ObjectId } = require('mongoose').Types;
 const mongoose = require('mongoose');
+const isEmailValid = require('./utility/validation')
 const app = express();
 require('./db')
 const PORT = 3000;
@@ -133,6 +134,46 @@ app.delete('/notes/:id', (req, res) => {
         })
 });
 
+app.post('/notes/:id/share', (req, res) => {
+    const id = req.params.id;
+    const {email} = req.body
+
+    if(!email){
+        return res.status(422).json({error: "Please enter an Email ID"})
+    }
+    if(!isEmailValid){
+        return res.status(422).json({error: "Invalid Email"})
+    }
+    notesModel.findOne({email})
+    .then((shareUser) => {
+        if (!shareUser) {
+            return res.status(404).json({error: "Email not found. Please Enter a valid Email ID"})
+        }
+        notesModel.findOne({_id: id})
+        .then((data) => {
+            if(!data){
+                res.status(404).json({error: "Note not found"})
+            }
+            if (data.sharedWith.includes(shareUser._id)){
+                return res.status(422).json({error: "Note has been already shared with this user"})
+            }
+            data.sharedWith.push(shareUser._id)
+            data.save()
+            .then((successNote) => {
+                res.status(201).json({message: "Note shared successfully"});
+            })
+            .catch((err) => {
+                res.status(500).json({error: err.message})
+            })
+        })
+        .catch((err) => {
+            res.status(500).json({error: err.message})
+        })
+    })
+    .catch((err) => {
+        res.status(500).json({error: err.message})
+    })
+})
 
 // const notesRouter = require('./router/notesRouter')
 // app.use('/api/notes', notesRouter)
