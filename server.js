@@ -1,15 +1,28 @@
 const express = require('express');
+const app = express();
 const bodyParser = require('body-parser');
 const { ObjectId } = require('mongoose').Types;
 const mongoose = require('mongoose');
-const isEmailValid = require('./utility/validation')
-const app = express();
+
+const authRoutes = require('./router/authRouter');
+const notesModel = require('../backend/models/notesModel')
+const isEmailValid = require('./utility/validation');
+const {requireAuth} = require('../backend/middleware/authMiddleware')
+
 require('./db')
-const PORT = 3000;
+require('dotenv').config();
+const cookieParser = require('cookie-parser')
+const PORT = process.env.PORT;
 app.use(bodyParser.json());
 
 
-const notesModel = require('../backend/model/notesModel')
+
+
+// middleware
+app.use(express.static('public'));
+app.use(express.json());
+app.use(cookieParser());
+
 
 //code
 const notes = []
@@ -20,7 +33,7 @@ app.get('/', (req, res) => {
 })  
 
 // Get all notes
-app.get('/notes', async(req, res) => {
+app.get('/notes', requireAuth, async(req, res) => {
     try {
         const notes = await notesModel.find();  
         res.status(200).json({notes});
@@ -30,7 +43,7 @@ app.get('/notes', async(req, res) => {
 })
 
 //Get a particular note
-app.get('/notes/:id', async(req, res) => {   
+app.get('/notes/:id', requireAuth, async(req, res) => {   
     // Implement logic to retrieve a particular note
     const noteID = req.params.id;
     if (!ObjectId.isValid(noteID)) {
@@ -48,7 +61,7 @@ app.get('/notes/:id', async(req, res) => {
 });
 
 // Create a new note
-app.post('/notes', async(req, res) => {
+app.post('/notes', requireAuth, async(req, res) => {
     const {title, body} = req.body
     if(!title || !body){
       return res.status(400).json({error:'Please provide both title and body'});
@@ -63,7 +76,7 @@ app.post('/notes', async(req, res) => {
 });
 
 // Update a note by ID
-app.put('/notes/:id', (req, res) => {
+app.put('/notes/:id', requireAuth, (req, res) => {
     // Implement logic to update a note by ID
     const id = req.params.id
     const thingsToUpdate = {}
@@ -93,16 +106,6 @@ app.put('/notes/:id', (req, res) => {
     else{
         return res.status(422).json({error: "Please fill any one field"})
     }
-    //-----------------If no Title or Body will be passed, then this code will not work---------------------------
-
-    // if(title.length < 3){
-    //     return res.status(422).json({error: "Title should be atleast 3 characters"})
-    // }
-    // if(body.length < 10){
-    //     return res.status(422).json({error: "Body should be atleast 10 characters"})
-    // }
-    // thingsToUpdate.title = title
-    // thingsToUpdate.body = body
     notesModel.findOneAndUpdate({_id:id}, {$set: thingsToUpdate})
     .then((data) => {
         if(!data){
@@ -118,7 +121,7 @@ app.put('/notes/:id', (req, res) => {
 });
 
 // Delete a note by ID
-app.delete('/notes/:id', (req, res) => {
+app.delete('/notes/:id', requireAuth, (req, res) => {
     const id = req.params.id;
     notesModel.findOneAndDelete({_id: id})
     .then((data) => {
@@ -134,7 +137,7 @@ app.delete('/notes/:id', (req, res) => {
         })
 });
 
-app.post('/notes/:id/share', (req, res) => {
+app.post('/notes/:id/share', requireAuth, (req, res) => {
     const id = req.params.id;
     const {email} = req.body
 
@@ -175,10 +178,12 @@ app.post('/notes/:id/share', (req, res) => {
     })
 })
 
-// const notesRouter = require('./router/notesRouter')
-// app.use('/api/notes', notesRouter)
-
-
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+
+
+// routes
+// app.get('/', (req, res) => res.render('home'));
+// app.get('/smoothies', (req, res) => res.render('smoothies'));
+app.use(authRoutes);
