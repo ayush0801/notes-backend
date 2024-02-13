@@ -29,7 +29,7 @@ const notes = []
 
 //temp
 app.get('/', (req, res) => {
-    res.status(200).json('This is the message that i want to display at localhost:3000/')
+    res.status(200).json('This is the message that I want to display at localhost:3000/')
 })  
 
 // Get all notes

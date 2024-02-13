@@ -83,3 +83,8 @@ module.exports.login_post = async (req, res) => {
       return res.status(500).json({error: err});
    }) 
 }
+
+module.exports.logout_get = (req, res) => {
+   res.cookie('jwt', '', {maxAge: 1});
+   res.json({message: "You have been successfully logged out"});
+}
